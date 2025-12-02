@@ -185,7 +185,6 @@ function showCategoryModal(videoId, videoUrl) {
   submitBtn.addEventListener('click', () => {
     if (selectedCategory) {
       console.log(`Video ${videoId} categorized as: ${selectedCategory}`);
-      alert(`Video categorized as: ${selectedCategory}`);
       modal.remove();
       window.location.href = videoUrl;
     }
