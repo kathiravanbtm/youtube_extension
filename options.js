@@ -1,191 +1,152 @@
-// Default categories
-let defaultCategories = ['Educational', 'Entertainment', 'Music', 'Gaming', 'Technology', 'Sports', 'News', 'Other'];
-let categories = [];
-let videos = {};
+document.addEventListener('DOMContentLoaded', () => {
+    // Tab switching
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabName = tab.getAttribute('data-tab');
+            showTab(tabName);
+        });
+    });
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    loadData();
+    // Add Category
+    document.getElementById('addCategoryBtn').addEventListener('click', addCategory);
+
+    // Clear Data
+    document.getElementById('clearDataBtn').addEventListener('click', clearAllData);
+
+    // Export Data
+    document.getElementById('exportDataBtn').addEventListener('click', exportData);
+
+    // Load initial data
+    loadAnalytics();
+    loadCategories();
+    loadVideos();
 });
 
-// Load data from storage
-function loadData() {
-    chrome.storage.local.get(null, (result) => {
-        // Load categories
-        categories = result.categories || defaultCategories;
-        
-        // Load videos (filter out categories key)
-        videos = {};
-        Object.keys(result).forEach(key => {
-            if (key !== 'categories' && result[key].category) {
-                videos[key] = result[key];
-            }
-        });
-        
-        updateUI();
-    });
-}
-
-// Update all UI elements
-function updateUI() {
-    updateAnalytics();
-    updateCategoryList();
-    updateVideoList();
-}
-
-// Update analytics
-function updateAnalytics() {
-    const totalVideos = Object.keys(videos).length;
-    const totalCategories = categories.length;
-    
-    // Count today's videos
-    const today = new Date().toDateString();
-    const todayVideos = Object.values(videos).filter(video => 
-        new Date(video.timestamp).toDateString() === today
-    ).length;
-    
-    document.getElementById('totalVideos').textContent = totalVideos;
-    document.getElementById('totalCategories').textContent = totalCategories;
-    document.getElementById('todayVideos').textContent = todayVideos;
-    
-    // Category statistics
-    const categoryStats = {};
-    Object.values(videos).forEach(video => {
-        categoryStats[video.category] = (categoryStats[video.category] || 0) + 1;
-    });
-    
-    const statsHtml = Object.entries(categoryStats)
-        .sort(([,a], [,b]) => b - a)
-        .map(([category, count]) => `
-            <div class="category-item">
-                <span><strong>${category}</strong></span>
-                <span>${count} videos</span>
-            </div>
-        `).join('');
-    
-    document.getElementById('categoryStats').innerHTML = `
-        <h3>Videos per Category</h3>
-        ${statsHtml || '<p>No videos categorized yet.</p>'}
-    `;
-}
-
-// Update category list
-function updateCategoryList() {
-    const listHtml = categories.map(category => `
-        <div class="category-item">
-            <span>${category}</span>
-            <button class="btn btn-danger" onclick="deleteCategory('${category}')">Delete</button>
-        </div>
-    `).join('');
-    
-    document.getElementById('categoryList').innerHTML = listHtml;
-}
-
-// Update video list
-function updateVideoList() {
-    const videoHtml = Object.entries(videos)
-        .sort(([,a], [,b]) => b.timestamp - a.timestamp)
-        .map(([videoId, video]) => `
-            <div class="video-item">
-                <div>
-                    <strong>Video ID:</strong> ${videoId}<br>
-                    <strong>Category:</strong> ${video.category}<br>
-                    <strong>Date:</strong> ${new Date(video.timestamp).toLocaleDateString()}
-                </div>
-                <div>
-                    <a href="${video.url}" target="_blank" class="btn btn-secondary">Open Video</a>
-                    <button class="btn btn-danger" onclick="deleteVideo('${videoId}')">Delete</button>
-                </div>
-            </div>
-        `).join('');
-    
-    document.getElementById('videoList').innerHTML = videoHtml || '<p>No videos categorized yet.</p>';
-}
-
-// Add new category
-function addCategory() {
-    const input = document.getElementById('newCategoryInput');
-    const newCategory = input.value.trim();
-    
-    if (newCategory && !categories.includes(newCategory)) {
-        categories.push(newCategory);
-        chrome.storage.local.set({categories: categories}, () => {
-            input.value = '';
-            updateUI();
-        });
-    }
-}
-
-// Delete category
-function deleteCategory(category) {
-    if (confirm(`Delete category "${category}"? This will not affect already categorized videos.`)) {
-        categories = categories.filter(cat => cat !== category);
-        chrome.storage.local.set({categories: categories}, () => {
-            updateUI();
-        });
-    }
-}
-
-// Delete video
-function deleteVideo(videoId) {
-    if (confirm('Delete this video categorization?')) {
-        chrome.storage.local.remove(videoId, () => {
-            delete videos[videoId];
-            updateUI();
-        });
-    }
-}
-
-// Clear all data
-function clearAllData() {
-    if (confirm('Clear all data? This cannot be undone.')) {
-        chrome.storage.local.clear(() => {
-            categories = defaultCategories;
-            videos = {};
-            chrome.storage.local.set({categories: categories}, () => {
-                updateUI();
-            });
-        });
-    }
-}
-
-// Export data
-function exportData() {
-    const data = {
-        categories: categories,
-        videos: videos,
-        exportDate: new Date().toISOString()
-    };
-    
-    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'youtube-categories-export.json';
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-// Tab switching
 function showTab(tabName) {
     // Hide all sections
-    document.querySelectorAll('.section').forEach(section => {
-        section.classList.remove('active');
-    });
-    
-    // Remove active from all tabs
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    // Show selected section and tab
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(section => section.classList.remove('active'));
+
+    // Remove active from tabs
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+
+    // Show selected section
     document.getElementById(tabName).classList.add('active');
-    event.target.classList.add('active');
+
+    // Add active to clicked tab
+    const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
+    activeTab.classList.add('active');
 }
 
-// Allow Enter key to add category
-document.getElementById('newCategoryInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        addCategory();
+function addCategory() {
+    const input = document.getElementById('newCategoryInput');
+    const categoryName = input.value.trim();
+    if (categoryName) {
+        chrome.storage.local.get(['categories'], (result) => {
+            const categories = result.categories || [];
+            if (!categories.includes(categoryName)) {
+                categories.push(categoryName);
+                chrome.storage.local.set({ categories }, () => {
+                    input.value = '';
+                    loadCategories();
+                });
+            }
+        });
     }
-});
+}
+
+function clearAllData() {
+    if (confirm('Are you sure you want to clear all data?')) {
+        chrome.storage.local.clear(() => {
+            loadAnalytics();
+            loadCategories();
+            loadVideos();
+        });
+    }
+}
+
+function exportData() {
+    chrome.storage.local.get(null, (data) => {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'youtube-extension-data.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+}
+
+function loadAnalytics() {
+    chrome.storage.local.get(['videoCategories', 'categories'], (result) => {
+        const videos = result.videoCategories || {};
+        const categories = result.categories || [];
+
+        document.getElementById('totalVideos').textContent = Object.keys(videos).length;
+        document.getElementById('totalCategories').textContent = categories.length;
+
+        // Today's videos (simplified, assuming no date tracking)
+        document.getElementById('todayVideos').textContent = '0'; // Placeholder
+
+        // Category stats
+        const categoryStats = document.getElementById('categoryStats');
+        categoryStats.innerHTML = '';
+        const grouped = {};
+        Object.values(videos).forEach(cat => {
+            grouped[cat] = (grouped[cat] || 0) + 1;
+        });
+        Object.entries(grouped).forEach(([cat, count]) => {
+            const div = document.createElement('div');
+            div.className = 'stat-card';
+            div.innerHTML = `<div class="stat-number">${count}</div><div>${cat}</div>`;
+            categoryStats.appendChild(div);
+        });
+    });
+}
+
+function loadCategories() {
+    chrome.storage.local.get(['categories'], (result) => {
+        const categories = result.categories || [];
+        const list = document.getElementById('categoryList');
+        list.innerHTML = '';
+        categories.forEach(cat => {
+            const div = document.createElement('div');
+            div.className = 'category-item';
+            div.innerHTML = `<span>${cat}</span><button class="btn btn-danger" onclick="removeCategory('${cat}')">Remove</button>`;
+            list.appendChild(div);
+        });
+    });
+}
+
+function loadVideos() {
+    chrome.storage.local.get(['videoCategories'], (result) => {
+        const videos = result.videoCategories || {};
+        const list = document.getElementById('videoList');
+        list.innerHTML = '';
+        Object.entries(videos).forEach(([id, cat]) => {
+            const div = document.createElement('div');
+            div.className = 'video-item';
+            div.innerHTML = `<span>Video ID: ${id} - Category: ${cat}</span>`;
+            list.appendChild(div);
+        });
+    });
+}
+
+function removeCategory(cat) {
+    chrome.storage.local.get(['categories', 'videoCategories'], (result) => {
+        const categories = result.categories || [];
+        const videos = result.videoCategories || {};
+        const newCategories = categories.filter(c => c !== cat);
+        const newVideos = {};
+        Object.entries(videos).forEach(([id, vcat]) => {
+            if (vcat !== cat) newVideos[id] = vcat;
+        });
+        chrome.storage.local.set({ categories: newCategories, videoCategories: newVideos }, () => {
+            loadCategories();
+            loadVideos();
+            loadAnalytics();
+        });
+    });
+}

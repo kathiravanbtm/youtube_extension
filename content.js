@@ -186,7 +186,6 @@ function showCategoryModal(videoId, videoUrl) {
     if (selectedCategory) {
       console.log(`Video ${videoId} categorized as: ${selectedCategory}`);
       modal.remove();
-      window.location.href = videoUrl;
     }
   });
 
