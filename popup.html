@@ -4,18 +4,71 @@
   <title>YouTube Categorizer</title>
   <style>
     body {
-      width: 300px;
+      width: 350px;
+      min-height: 200px;
+      padding: 15px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: #f9f9f9;
+    }
+    h3 {
+      margin: 0 0 15px 0;
+      color: #ff0000;
+      text-align: center;
+      font-size: 18px;
+    }
+    #categories {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 15px;
+    }
+    .category {
+      margin-bottom: 15px;
       padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: white;
+    }
+    .category h4 {
+      margin: 0 0 10px 0;
+      color: #ff0000;
+      font-size: 14px;
+    }
+    .video {
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 12px;
+      color: #666;
+    }
+    .video:last-child {
+      border-bottom: none;
     }
     button {
-      margin: 5px;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background: #ff0000;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #cc0000;
+    }
+    p {
+      text-align: center;
+      color: #666;
+      padding: 20px;
+      margin: 0;
     }
   </style>
 </head>
 <body>
-  <h3>Categorized Videos</h3>
+  <h3>📺 Categorized Videos</h3>
   <div id="categories"></div>
-    <button id="openExtensions">Open Extensions Page</button>   
+  <button id="openExtensions">📊 Open Full Analytics</button>   
     <script src="popup.js">
     </script>
 </body>

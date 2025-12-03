@@ -1,7 +1,35 @@
 console.log("Content script loaded on YouTube");
+console.log("Chrome runtime available:", !!chrome.runtime);
+console.log("Extension ID:", chrome.runtime?.id);
 
 // Simple categories array
 const categories = ['Educational', 'Entertainment', 'Music', 'Gaming', 'Technology', 'Sports', 'News', 'Other'];
+
+// Function to show success message
+function showSuccessMessage(message) {
+  const successDiv = document.createElement('div');
+  successDiv.style.position = 'fixed';
+  successDiv.style.top = '20px';
+  successDiv.style.right = '20px';
+  successDiv.style.background = '#4CAF50';
+  successDiv.style.color = 'white';
+  successDiv.style.padding = '15px 20px';
+  successDiv.style.borderRadius = '5px';
+  successDiv.style.zIndex = '10001';
+  successDiv.style.fontFamily = 'Arial, sans-serif';
+  successDiv.style.fontSize = '14px';
+  successDiv.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+  successDiv.textContent = message;
+  
+  document.body.appendChild(successDiv);
+  
+  // Auto-remove after 3 seconds
+  setTimeout(() => {
+    if (successDiv.parentNode) {
+      successDiv.parentNode.removeChild(successDiv);
+    }
+  }, 3000);
+}
 
 // Function to create and show category modal
 function showCategoryModal(videoId, videoUrl) {
@@ -191,22 +219,31 @@ submitBtn.addEventListener('click', () => {
     const channel = document.querySelector('#owner #channel-name a')?.textContent?.trim() || 'Unknown';
 
     // Send message to background script to save/update video
-    chrome.runtime.sendMessage({
-      action: 'saveVideo',
-      videoData: {
-        id: videoId,
-        category: selectedCategory,
-        channel,
-        watchCount: 1,  // Will be incremented if existing
-        dateWatched: new Date().toISOString()
-      }
-    }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error('Error sending message:', chrome.runtime.lastError);
-      } else {
-        console.log('Video saved successfully:', response);
-      }
-    });
+    try {
+      chrome.runtime.sendMessage({
+        action: 'saveVideo',
+        videoData: {
+          id: videoId,
+          category: selectedCategory,
+          channel,
+          watchCount: 1,  // Will be incremented if existing
+          dateWatched: new Date().toISOString()
+        }
+      }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('Error sending message:', chrome.runtime.lastError);
+          // Show user-friendly error message
+          alert('Extension error: Please reload the page and try again.');
+        } else {
+          console.log('Video saved successfully:', response);
+          // Show success message
+          showSuccessMessage(`Video categorized as "${selectedCategory}"!`);
+        }
+      });
+    } catch (error) {
+      console.error('Extension context error:', error);
+      alert('Extension context error: Please reload the page and try again.');
+    }
   }
 });
 

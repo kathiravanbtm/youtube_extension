@@ -120,7 +120,14 @@ function loadCategories() {
         categories.forEach(cat => {
             const div = document.createElement('div');
             div.className = 'category-item';
-            div.innerHTML = `<span>${cat}</span><button class="btn btn-danger" onclick="removeCategory('${cat}')">Remove</button>`;
+            const span = document.createElement('span');
+            span.textContent = cat;
+            const button = document.createElement('button');
+            button.className = 'btn btn-danger';
+            button.textContent = 'Remove';
+            button.addEventListener('click', () => removeCategory(cat));
+            div.appendChild(span);
+            div.appendChild(button);
             list.appendChild(div);
         });
     });
