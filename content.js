@@ -36,6 +36,17 @@ function showCategoryModal(videoId, videoUrl) {
   // Prevent multiple modals
   if (document.getElementById('yt-category-modal')) return;
 
+  // Load categories from storage first, then create modal
+  chrome.storage.local.get(['categories'], (result) => {
+    const categories = result.categories || defaultCategories;
+    console.log('Content script - Loaded categories from storage:', categories);
+    console.log('Using default fallback?', !result.categories);
+    createCategoryModal(videoId, videoUrl, categories);
+  });
+}
+
+// Function to create the actual modal with the loaded categories
+function createCategoryModal(videoId, videoUrl, categories) {
   // Create modal overlay
   const modal = document.createElement('div');
   modal.id = 'yt-category-modal';
