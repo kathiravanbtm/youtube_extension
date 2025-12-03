@@ -52,15 +52,40 @@ document.addEventListener('DOMContentLoaded', () => {
       categoryVideos.forEach(video => {
         const vidDiv = document.createElement('div');
         vidDiv.className = 'video';
-        vidDiv.style.padding = '5px 0';
+        vidDiv.style.padding = '8px 0';
         vidDiv.style.fontSize = '12px';
         vidDiv.style.color = '#666';
-        vidDiv.innerHTML = `
+        vidDiv.style.display = 'flex';
+        vidDiv.style.gap = '10px';
+        vidDiv.style.alignItems = 'flex-start';
+        
+        // Add thumbnail
+        const thumbnail = document.createElement('img');
+        thumbnail.src = `https://img.youtube.com/vi/${video.id}/default.jpg`;
+        thumbnail.style.width = '60px';
+        thumbnail.style.height = '45px';
+        thumbnail.style.borderRadius = '4px';
+        thumbnail.style.objectFit = 'cover';
+        thumbnail.style.border = '1px solid #ddd';
+        thumbnail.style.flexShrink = '0';
+        
+        // Fallback for broken images
+        thumbnail.onerror = () => {
+          thumbnail.style.display = 'none';
+        };
+        
+        // Video info
+        const videoInfo = document.createElement('div');
+        videoInfo.style.flex = '1';
+        videoInfo.innerHTML = `
           <strong>ID:</strong> ${video.id}<br>
           <strong>Channel:</strong> ${video.channel}<br>
           <strong>Watched:</strong> ${video.watchCount} times<br>
           <strong>Last:</strong> ${new Date(video.dateWatched).toLocaleDateString()}
         `;
+        
+        vidDiv.appendChild(thumbnail);
+        vidDiv.appendChild(videoInfo);
         div.appendChild(vidDiv);
       });
       

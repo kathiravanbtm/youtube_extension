@@ -141,7 +141,31 @@ function loadVideos() {
         videos.forEach(v => {
             const div = document.createElement('div');
             div.className = 'video-item';
-            div.innerHTML = `<span>ID: ${v.id}, Category: ${v.category}, Channel: ${v.channel}, Watches: ${v.watchCount}, Last Watched: ${new Date(v.dateWatched).toLocaleDateString()}</span>`;
+            div.style.display = 'flex';
+            div.style.gap = '15px';
+            div.style.alignItems = 'center';
+            
+            // Add thumbnail
+            const thumbnail = document.createElement('img');
+            thumbnail.src = `https://img.youtube.com/vi/${v.id}/mqdefault.jpg`;
+            thumbnail.style.width = '80px';
+            thumbnail.style.height = '60px';
+            thumbnail.style.borderRadius = '6px';
+            thumbnail.style.objectFit = 'cover';
+            thumbnail.style.border = '1px solid #ddd';
+            thumbnail.style.flexShrink = '0';
+            
+            // Fallback for broken images
+            thumbnail.onerror = () => {
+                thumbnail.src = `https://img.youtube.com/vi/${v.id}/default.jpg`;
+            };
+            
+            // Video info
+            const videoInfo = document.createElement('span');
+            videoInfo.innerHTML = `<strong>ID:</strong> ${v.id}<br><strong>Category:</strong> ${v.category}<br><strong>Channel:</strong> ${v.channel}<br><strong>Watches:</strong> ${v.watchCount}<br><strong>Last Watched:</strong> ${new Date(v.dateWatched).toLocaleDateString()}`;
+            
+            div.appendChild(thumbnail);
+            div.appendChild(videoInfo);
             list.appendChild(div);
         });
     });

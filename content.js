@@ -78,13 +78,60 @@ function createCategoryModal(videoId, videoUrl, categories) {
   title.style.color = '#333';
   title.style.textAlign = 'center';
 
-  // Video ID
+  // Video thumbnail and info
+  const videoInfoDiv = document.createElement('div');
+  videoInfoDiv.style.textAlign = 'center';
+  videoInfoDiv.style.marginBottom = '20px';
+  
+  // YouTube thumbnail (multiple fallbacks for reliability)
+  const thumbnail = document.createElement('img');
+  thumbnail.style.width = '120px';
+  thumbnail.style.height = '90px';
+  thumbnail.style.borderRadius = '8px';
+  thumbnail.style.marginBottom = '10px';
+  thumbnail.style.border = '2px solid #ddd';
+  thumbnail.style.objectFit = 'cover';
+  
+  // YouTube thumbnail URLs (in order of preference)
+  const thumbnailUrls = [
+    `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,  // Medium quality
+    `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,  // High quality  
+    `https://img.youtube.com/vi/${videoId}/default.jpg`     // Default fallback
+  ];
+  
+  // Try loading thumbnail with fallback
+  let currentUrlIndex = 0;
+  const loadThumbnail = () => {
+    if (currentUrlIndex < thumbnailUrls.length) {
+      thumbnail.src = thumbnailUrls[currentUrlIndex];
+      thumbnail.onerror = () => {
+        currentUrlIndex++;
+        loadThumbnail();
+      };
+      thumbnail.onload = () => {
+        console.log(`Thumbnail loaded successfully from: ${thumbnailUrls[currentUrlIndex]}`);
+      };
+    } else {
+      // If all thumbnails fail, show a placeholder
+      thumbnail.style.background = '#f0f0f0';
+      thumbnail.style.display = 'flex';
+      thumbnail.style.alignItems = 'center';
+      thumbnail.style.justifyContent = 'center';
+      thumbnail.alt = 'No thumbnail available';
+      thumbnail.title = 'Thumbnail not available';
+    }
+  };
+  
+  loadThumbnail();
+  
   const vid = document.createElement('p');
   vid.textContent = `Video ID: ${videoId}`;
-  vid.style.margin = '0 0 20px 0';
+  vid.style.margin = '5px 0 0 0';
   vid.style.color = '#666';
-  vid.style.fontSize = '12px';
-  vid.style.textAlign = 'center';
+  vid.style.fontSize = '11px';
+  
+  videoInfoDiv.appendChild(thumbnail);
+  videoInfoDiv.appendChild(vid);
 
   // Label
   const label = document.createElement('label');
@@ -170,7 +217,7 @@ function createCategoryModal(videoId, videoUrl, categories) {
   actions.appendChild(cancelBtn);
   actions.appendChild(submitBtn);
   dialog.appendChild(title);
-  dialog.appendChild(vid);
+  dialog.appendChild(videoInfoDiv);
   dialog.appendChild(label);
   dialog.appendChild(categoryContainer);
   dialog.appendChild(newCategoryInput);
