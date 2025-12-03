@@ -1,3 +1,6 @@
+// filepath: /home/baymax/Documents/projects/youtube extension/options.js
+const defaultCategories = ['Educational', 'Entertainment', 'Music', 'Gaming', 'Technology', 'Sports', 'News', 'Other'];
+
 document.addEventListener('DOMContentLoaded', () => {
     // Tab switching
     const tabs = document.querySelectorAll('.tab');
@@ -24,18 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function showTab(tabName) {
-    // Hide all sections
     const sections = document.querySelectorAll('.section');
     sections.forEach(section => section.classList.remove('active'));
-
-    // Remove active from tabs
     const tabs = document.querySelectorAll('.tab');
     tabs.forEach(tab => tab.classList.remove('active'));
-
-    // Show selected section
     document.getElementById(tabName).classList.add('active');
-
-    // Add active to clicked tab
     const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
     activeTab.classList.add('active');
 }
@@ -45,7 +41,7 @@ function addCategory() {
     const categoryName = input.value.trim();
     if (categoryName) {
         chrome.storage.local.get(['categories'], (result) => {
-            const categories = result.categories || [];
+            const categories = result.categories || defaultCategories.slice(); // Use defaults if empty
             if (!categories.includes(categoryName)) {
                 categories.push(categoryName);
                 chrome.storage.local.set({ categories }, () => {
@@ -80,22 +76,19 @@ function exportData() {
 }
 
 function loadAnalytics() {
-    chrome.storage.local.get(['videoCategories', 'categories'], (result) => {
-        const videos = result.videoCategories || {};
-        const categories = result.categories || [];
-
-        document.getElementById('totalVideos').textContent = Object.keys(videos).length;
+    chrome.storage.local.get(['videos', 'categories'], (result) => {
+        const videos = result.videos || [];
+        const categories = result.categories || defaultCategories;
+        document.getElementById('totalVideos').textContent = videos.length;
         document.getElementById('totalCategories').textContent = categories.length;
-
-        // Today's videos (simplified, assuming no date tracking)
-        document.getElementById('todayVideos').textContent = '0'; // Placeholder
-
-        // Category stats
+        const today = new Date().toISOString().split('T')[0];
+        const todayVideos = videos.filter(v => v.dateWatched.startsWith(today)).length;
+        document.getElementById('todayVideos').textContent = todayVideos;
         const categoryStats = document.getElementById('categoryStats');
-        categoryStats.innerHTML = '';
+        categoryStats.innerHTML = '<h3>Category Stats</h3>';
         const grouped = {};
-        Object.values(videos).forEach(cat => {
-            grouped[cat] = (grouped[cat] || 0) + 1;
+        videos.forEach(v => {
+            grouped[v.category] = (grouped[v.category] || 0) + v.watchCount;
         });
         Object.entries(grouped).forEach(([cat, count]) => {
             const div = document.createElement('div');
@@ -103,12 +96,25 @@ function loadAnalytics() {
             div.innerHTML = `<div class="stat-number">${count}</div><div>${cat}</div>`;
             categoryStats.appendChild(div);
         });
+        // Top channels
+        const channelStats = {};
+        videos.forEach(v => {
+            channelStats[v.channel] = (channelStats[v.channel] || 0) + v.watchCount;
+        });
+        const topChannels = Object.entries(channelStats).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        const topChannelsDiv = document.getElementById('topChannels') || document.createElement('div'); // Add if missing
+        topChannelsDiv.id = 'topChannels';
+        topChannelsDiv.innerHTML = '<h3>Top Channels</h3>';
+        topChannels.forEach(([channel, count]) => {
+            topChannelsDiv.innerHTML += `<div>${channel}: ${count} watches</div>`;
+        });
+        if (!document.getElementById('topChannels')) categoryStats.appendChild(topChannelsDiv);
     });
 }
 
 function loadCategories() {
     chrome.storage.local.get(['categories'], (result) => {
-        const categories = result.categories || [];
+        const categories = result.categories || defaultCategories.slice(); // Show defaults
         const list = document.getElementById('categoryList');
         list.innerHTML = '';
         categories.forEach(cat => {
@@ -121,29 +127,26 @@ function loadCategories() {
 }
 
 function loadVideos() {
-    chrome.storage.local.get(['videoCategories'], (result) => {
-        const videos = result.videoCategories || {};
+    chrome.storage.local.get(['videos'], (result) => {
+        const videos = result.videos || [];
         const list = document.getElementById('videoList');
         list.innerHTML = '';
-        Object.entries(videos).forEach(([id, cat]) => {
+        videos.forEach(v => {
             const div = document.createElement('div');
             div.className = 'video-item';
-            div.innerHTML = `<span>Video ID: ${id} - Category: ${cat}</span>`;
+            div.innerHTML = `<span>ID: ${v.id}, Category: ${v.category}, Channel: ${v.channel}, Watches: ${v.watchCount}, Last Watched: ${new Date(v.dateWatched).toLocaleDateString()}</span>`;
             list.appendChild(div);
         });
     });
 }
 
 function removeCategory(cat) {
-    chrome.storage.local.get(['categories', 'videoCategories'], (result) => {
-        const categories = result.categories || [];
-        const videos = result.videoCategories || {};
+    chrome.storage.local.get(['categories', 'videos'], (result) => {
+        const categories = result.categories || defaultCategories.slice();
+        const videos = result.videos || [];
         const newCategories = categories.filter(c => c !== cat);
-        const newVideos = {};
-        Object.entries(videos).forEach(([id, vcat]) => {
-            if (vcat !== cat) newVideos[id] = vcat;
-        });
-        chrome.storage.local.set({ categories: newCategories, videoCategories: newVideos }, () => {
+        const newVideos = videos.filter(v => v.category !== cat); // Remove videos in category
+        chrome.storage.local.set({ categories: newCategories, videos: newVideos }, () => {
             loadCategories();
             loadVideos();
             loadAnalytics();

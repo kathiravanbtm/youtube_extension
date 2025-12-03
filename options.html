@@ -1,3 +1,4 @@
+<!-- filepath: /home/baymax/Documents/projects/youtube extension/options.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,20 +29,23 @@
         .tabs {
             display: flex;
             border-bottom: 1px solid #ddd;
+            flex-wrap: wrap; /* Responsive */
         }
         .tab {
-            padding: 15px 30px;
+            padding: 15px 20px;
             cursor: pointer;
             border: none;
             background: #f9f9f9;
             border-bottom: 3px solid transparent;
+            flex: 1; /* Equal width */
+            min-width: 100px; /* Min for mobile */
         }
         .tab.active {
             background: white;
             border-bottom-color: #ff0000;
         }
         .content {
-            padding: 30px;
+            padding: 20px;
         }
         .section {
             display: none;
@@ -49,7 +53,7 @@
         .section.active {
             display: block;
         }
-        .category-item {
+        .category-item, .video-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -60,25 +64,16 @@
             border: 1px solid #ddd;
         }
         .btn {
-            padding: 10px 20px;
+            padding: 10px 15px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
+            margin: 5px;
         }
         .btn-primary { background: #ff0000; color: white; }
         .btn-secondary { background: #6c757d; color: white; }
         .btn-danger { background: #dc3545; color: white; }
-        .video-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            margin: 10px 0;
-            background: #f9f9f9;
-            border-radius: 8px;
-            border-left: 4px solid #ff0000;
-        }
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -102,6 +97,16 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 14px;
+            width: 100%;
+            max-width: 300px;
+        }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .tabs { flex-direction: column; }
+            .tab { padding: 10px; }
+            .content { padding: 10px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .category-item, .video-item { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -144,7 +149,7 @@
             <div id="categories" class="section">
                 <h2>Manage Categories</h2>
                 <div style="margin-bottom: 20px;">
-                    <input type="text" id="newCategoryInput" placeholder="Add new category..." style="width: 300px;">
+                    <input type="text" id="newCategoryInput" placeholder="Add new category...">
                     <button class="btn btn-primary" id="addCategoryBtn">Add Category</button>
                 </div>
                 <div id="categoryList"></div>

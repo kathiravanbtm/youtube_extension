@@ -181,13 +181,34 @@ function showCategoryModal(videoId, videoUrl) {
     }
   });
 
-  // Handle submit
-  submitBtn.addEventListener('click', () => {
-    if (selectedCategory) {
-      console.log(`Video ${videoId} categorized as: ${selectedCategory}`);
-      modal.remove();
-    }
-  });
+  
+submitBtn.addEventListener('click', () => {
+  if (selectedCategory) {
+    console.log(`Video ${videoId} categorized as: ${selectedCategory}`);
+    modal.remove();
+
+    // Extract channel from the current page DOM
+    const channel = document.querySelector('#owner #channel-name a')?.textContent?.trim() || 'Unknown';
+
+    // Send message to background script to save/update video
+    chrome.runtime.sendMessage({
+      action: 'saveVideo',
+      videoData: {
+        id: videoId,
+        category: selectedCategory,
+        channel,
+        watchCount: 1,  // Will be incremented if existing
+        dateWatched: new Date().toISOString()
+      }
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('Error sending message:', chrome.runtime.lastError);
+      } else {
+        console.log('Video saved successfully:', response);
+      }
+    });
+  }
+});
 
   // Handle cancel
   cancelBtn.addEventListener('click', () => {
