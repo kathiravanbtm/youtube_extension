@@ -148,8 +148,8 @@ function loadVideos() {
             // Add thumbnail
             const thumbnail = document.createElement('img');
             thumbnail.src = `https://img.youtube.com/vi/${v.id}/mqdefault.jpg`;
-            thumbnail.style.width = '80px';
-            thumbnail.style.height = '60px';
+            thumbnail.style.width = '320px';
+            thumbnail.style.height = '180px';
             thumbnail.style.borderRadius = '6px';
             thumbnail.style.objectFit = 'cover';
             thumbnail.style.border = '1px solid #ddd';
